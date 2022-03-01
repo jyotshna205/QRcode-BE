@@ -1,15 +1,23 @@
 const Jimp = require("jimp");
-const fs = require("fs");
-const qrCode = require("qrcode-reader");
+const jsQR = require("jsqr");
 
-const qrReader = async (filePath) => {
-  const img = await jimp.read(fs.readFileSync(__dirname + "/../" + filePath));
-  const qr = new qrCode();
-  const value = await new Promise((resolve, reject) => {
-    qr.callback = (err, v) => (err != null ? reject(err) : resolve(v));
-    qr.decode(img.bitmap);
+const qrReader = (imageBuffer) => {
+  return new Promise(async (resolve, reject) => {
+    await Jimp.read(await imageBuffer, (err, image) => {
+      if (err) reject(err);
+      const qrCodeImageArray = new Uint8ClampedArray(image.bitmap.data.buffer);
+      const qrCodeResult = jsQR(
+        qrCodeImageArray,
+        image.bitmap.width,
+        image.bitmap.height
+      );
+      if (qrCodeResult) {
+        resolve(qrCodeResult.data);
+      } else {
+        reject(new Error("Invalid QR code."));
+      }
+    });
   });
-  return value;
 };
 
 module.exports = qrReader;
