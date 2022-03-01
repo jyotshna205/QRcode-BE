@@ -54,11 +54,7 @@ app.get("/api/scans", (req, res) => {
 app.post("/api/upload", multipartMiddleware, async (req, res) => {
   try {
     const { originalFilename, path } = req.files.file;
-    const fileData = await qrReader(path).catch((err) => {
-      return res
-        .status(500)
-        .send({ message: "Error occured.", success: false, error: err });
-    });
+    const fileData = await qrReader(path);
     const data = {
       id: generateUUID(),
       time: Date.now(),
